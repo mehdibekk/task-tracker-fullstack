@@ -1,10 +1,12 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.UserResponseDto;
 import com.example.backend.model.User;
 import com.example.backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.stream.Collectors;
 import java.util.List;
 
 @RestController
@@ -20,13 +22,17 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserResponseDto> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(user -> new UserResponseDto(user.getId(), user.getEmail(), user.getName()))
+                .collect(Collectors.toList());
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
+    public UserResponseDto createUser(@RequestBody User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        return new UserResponseDto(saved.getId(), saved.getEmail(), saved.getName());
     }
 }
